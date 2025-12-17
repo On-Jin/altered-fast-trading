@@ -34,8 +34,14 @@ A Chrome Extension for automating card transfers on [altered.gg](https://www.alt
 3. Click the extension icon to open the popup
 4. Click **"Refresh Card Dictionary"** to build the card database
    - This takes ~20-60 seconds depending on your connection
-   - Only needs to be done once per locale
+   - Only needs to be done once per locale (if you change the website language, you have to refresh!)
 5. Refresh the altered.gg page - ADD buttons will appear under your cards
+
+### Sending cards
+
+6. Review the card list. You can click on "View Recap" for visual list.
+7. Select the RIGHT user from the dropdown.
+8. Press "Start Transfer"
 
 ### Locale Matching
 
