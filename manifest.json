@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Altered Fast Trading",
+  "version": "1.0.0",
+  "description": "Automate card gifting on altered.gg",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://api.altered.gg/*",
+    "https://www.altered.gg/*",
+    "https://altered.gg/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.altered.gg/*", "https://altered.gg/*"],
+      "js": ["content.js"],
+      "css": [],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altered Fast Trading</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Altered Fast Trading</h1>
+
+    <!-- Transfer Section -->
+    <div id="transferSection">
+      <div class="form-group">
+        <label for="friendSelect">Select Friend</label>
+        <select id="friendSelect">
+          <option value="">-- Select a friend --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="cardList">Card List</label>
+        <textarea id="cardList" rows="8" placeholder="2 ALT_CORE_B_BR_19_C
+1 ALT_CORE_B_AX_02_C
+9 ALT_CORE_B_AX_20_C"></textarea>
+      </div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="progress-text" id="progressText">0 / 0</span>
+      </div>
+
+      <div class="buttons">
+        <button id="startBtn" class="btn btn-primary">Start Transfer</button>
+        <button id="stopBtn" class="btn btn-danger" disabled>Stop</button>
+      </div>
+
+      <div class="buttons">
+        <button id="recapBtn" class="btn btn-secondary">View Recap</button>
+        <button id="clearBtn" class="btn btn-danger">Clear List</button>
+      </div>
+      <button id="downloadBtn" class="btn btn-secondary btn-full hidden">Download Report</button>
+
+      <hr class="separator">
+
+      <div class="dictionary-section">
+        <div class="dictionary-info">
+          <span id="dictInfo">Dictionary: Not loaded</span>
+        </div>
+        <div id="dictWarning" class="dict-warning hidden"></div>
+        <div id="dictSetup" class="dict-setup hidden">
+          <p class="setup-message">⚠️ Dictionary required! Click below to build it first.</p>
+        </div>
+        <button id="refreshDictBtn" class="btn btn-secondary btn-full">Refresh Card Dictionary</button>
+        <p class="hint">Builds hash→reference mapping for C/R1/R2 cards (~20 sec)</p>
+        <p class="hint">After building, refresh the altered.gg page to see buttons</p>
+      </div>
+    </div>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script src="altered-deckfmt.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
