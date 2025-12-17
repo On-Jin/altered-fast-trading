@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const transferSection = document.getElementById('transferSection');
+  // Tab elements
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const transferTab = document.getElementById('transferTab');
+  const resultsTab = document.getElementById('resultsTab');
+
+  // Transfer tab elements
   const friendSelect = document.getElementById('friendSelect');
   const cardListInput = document.getElementById('cardList');
   const startBtn = document.getElementById('startBtn');
@@ -8,15 +13,166 @@ document.addEventListener('DOMContentLoaded', async () => {
   const progressFill = document.getElementById('progressFill');
   const progressText = document.getElementById('progressText');
   const statusDiv = document.getElementById('status');
-  const downloadBtn = document.getElementById('downloadBtn');
   const refreshDictBtn = document.getElementById('refreshDictBtn');
   const dictInfo = document.getElementById('dictInfo');
   const dictWarning = document.getElementById('dictWarning');
   const dictSetup = document.getElementById('dictSetup');
 
+  // Results tab elements
+  const noResults = document.getElementById('noResults');
+  const resultsContent = document.getElementById('resultsContent');
+  const successCountEl = document.getElementById('successCount');
+  const failureCountEl = document.getElementById('failureCount');
+  const resultsTimeEl = document.getElementById('resultsTime');
+  const resultCardListEl = document.getElementById('resultCardList');
+  const copyListBtn = document.getElementById('copyListBtn');
+  const errorsSection = document.getElementById('errorsSection');
+  const errorsList = document.getElementById('errorsList');
+  const downloadReportBtn = document.getElementById('downloadReportBtn');
+  const resultsBadge = document.getElementById('resultsBadge');
+
+  // Store last results for download
+  let lastResults = null;
+
+  // Tab switching
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabName = btn.dataset.tab;
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (tabName === 'transfer') {
+        transferTab.classList.add('active');
+        resultsTab.classList.remove('active');
+      } else {
+        transferTab.classList.remove('active');
+        resultsTab.classList.add('active');
+        // Mark results as seen
+        resultsBadge.classList.add('hidden');
+        chrome.storage.local.set({ resultsUnseen: false });
+      }
+    });
+  });
+
   // Load saved data
-  const saved = await chrome.storage.local.get(['cardList', 'selectedFriendId', 'hashDictionaryCount', 'hashDictionaryUpdated', 'hashDictionaryLocale', 'localeWarning']);
+  const saved = await chrome.storage.local.get(['cardList', 'selectedFriendId', 'hashDictionaryCount', 'hashDictionaryUpdated', 'hashDictionaryLocale', 'localeWarning', 'transferHistory', 'resultsUnseen', 'lastTransferResults']);
   if (saved.cardList) cardListInput.value = saved.cardList;
+
+  // Transfer history - migrate old lastTransferResults if needed
+  let transferHistory = saved.transferHistory || [];
+  if (transferHistory.length === 0 && saved.lastTransferResults) {
+    transferHistory = [saved.lastTransferResults];
+    chrome.storage.local.set({ transferHistory });
+    console.log('Migrated lastTransferResults to transferHistory');
+  }
+
+  console.log('Loaded transferHistory:', transferHistory.length, 'items');
+
+  // Show badge if there are unseen results
+  if (saved.resultsUnseen && transferHistory.length > 0) {
+    resultsBadge.classList.remove('hidden');
+  }
+
+  // Display results in Results tab
+  function displayResults(results) {
+    if (!results) {
+      noResults.classList.remove('hidden');
+      resultsContent.classList.add('hidden');
+      return;
+    }
+
+    noResults.classList.add('hidden');
+    resultsContent.classList.remove('hidden');
+
+    // Update counts
+    const successCount = results.successes?.length || 0;
+    const failureCount = results.failures?.length || 0;
+    successCountEl.textContent = successCount;
+    failureCountEl.textContent = failureCount;
+
+    // Update time
+    if (results.startTime && results.endTime) {
+      const start = new Date(results.startTime);
+      const end = new Date(results.endTime);
+      const duration = Math.round((end - start) / 1000);
+      resultsTimeEl.textContent = `${start.toLocaleString()} (${duration}s)`;
+    } else {
+      resultsTimeEl.textContent = '';
+    }
+
+    // Build card list text
+    const allCards = [
+      ...(results.successes || []).map(s => `${s.card.quantity} ${s.card.reference}`),
+      ...(results.failures || []).map(f => `${f.card.quantity} ${f.card.reference}`)
+    ];
+    resultCardListEl.value = allCards.join('\n');
+
+    // Display errors
+    if (failureCount > 0) {
+      errorsSection.classList.remove('hidden');
+      errorsList.innerHTML = '';
+      for (const item of results.failures) {
+        const div = document.createElement('div');
+        div.className = 'error-item';
+        div.innerHTML = `
+          <span class="error-card">${item.card.quantity}x ${item.card.reference}</span>
+          <span class="error-msg">${item.error}</span>
+        `;
+        errorsList.appendChild(div);
+      }
+    } else {
+      errorsSection.classList.add('hidden');
+    }
+  }
+
+  // Render history list
+  function renderHistoryList() {
+    const historyList = document.getElementById('historyList');
+    const historySection = document.getElementById('historySection');
+
+    console.log('renderHistoryList called, transferHistory.length:', transferHistory.length);
+
+    if (transferHistory.length === 0) {
+      historySection.classList.add('hidden');
+      noResults.classList.remove('hidden');
+      return;
+    }
+
+    historySection.classList.remove('hidden');
+    noResults.classList.add('hidden');
+    historyList.innerHTML = '';
+
+    transferHistory.forEach((result, index) => {
+      const successCount = result.successes?.length || 0;
+      const failureCount = result.failures?.length || 0;
+      const date = new Date(result.startTime);
+      const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const item = document.createElement('div');
+      item.className = 'history-item' + (index === 0 && lastResults === result ? ' active' : '');
+      item.innerHTML = `
+        <span class="history-date">${dateStr}</span>
+        <span class="history-stats">
+          <span class="history-success">${successCount}</span> /
+          <span class="history-fail">${failureCount}</span>
+        </span>
+      `;
+      item.addEventListener('click', () => {
+        lastResults = result;
+        displayResults(result);
+        document.querySelectorAll('.history-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+      });
+      historyList.appendChild(item);
+    });
+  }
+
+  // Load and display history
+  renderHistoryList();
+  if (transferHistory.length > 0) {
+    lastResults = transferHistory[0];
+    displayResults(transferHistory[0]);
+  }
 
   // Display locale warning if any
   if (saved.localeWarning) {
@@ -160,9 +316,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     URL.revokeObjectURL(url);
   }
 
-  // Store last results for download
-  let lastResults = null;
-
   // Check job status on popup open
   const jobStatus = await chrome.storage.local.get(['jobRunning', 'jobProgress', 'jobTotal']);
   if (jobStatus.jobRunning) {
@@ -183,13 +336,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       startBtn.disabled = false;
       stopBtn.disabled = true;
 
-      // Store results and show download button
+      // Store results and display in Results tab
       if (message.results) {
         lastResults = message.results;
-        downloadBtn.classList.remove('hidden');
 
-        // Auto-download the report
-        downloadReport(message.results);
+        // Reload history from storage (background.js already added it)
+        chrome.storage.local.get(['transferHistory']).then(stored => {
+          console.log('Reloaded transferHistory after job complete:', stored.transferHistory?.length || 0);
+          transferHistory = stored.transferHistory || [];
+          renderHistoryList();
+        });
+        chrome.storage.local.set({ resultsUnseen: false });
+
+        // Display results and switch to Results tab
+        displayResults(message.results);
+        tabBtns.forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-tab="results"]').classList.add('active');
+        transferTab.classList.remove('active');
+        resultsTab.classList.add('active');
+        resultsBadge.classList.add('hidden');
       }
 
       // Show status with colors based on failures
@@ -276,16 +441,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     showStatus('Job stopped by user', 'error');
   });
 
-  // Download button
-  downloadBtn.addEventListener('click', () => {
+  // Copy to clipboard button
+  copyListBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(resultCardListEl.value);
+      const originalText = copyListBtn.textContent;
+      copyListBtn.textContent = 'Copied!';
+      copyListBtn.classList.add('btn-success-check');
+      setTimeout(() => {
+        copyListBtn.textContent = originalText;
+        copyListBtn.classList.remove('btn-success-check');
+      }, 1500);
+    } catch (err) {
+      showStatus('Failed to copy: ' + err.message, 'error');
+    }
+  });
+
+  // Download report button (in Results tab)
+  downloadReportBtn.addEventListener('click', () => {
     if (lastResults) {
       downloadReport(lastResults);
     }
   });
 
+  // Clear history button
+  const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', () => {
+      transferHistory = [];
+      chrome.storage.local.set({ transferHistory: [] });
+      lastResults = null;
+      displayResults(null);
+      renderHistoryList();
+      showStatus('History cleared', 'info');
+    });
+  }
+
   // Clear button
   const clearBtn = document.getElementById('clearBtn');
+  console.log('clearBtn element:', clearBtn);
   clearBtn.addEventListener('click', () => {
+    console.log('Clear button clicked');
     cardListInput.value = '';
     chrome.storage.local.set({ cardList: '' });
     showStatus('List cleared', 'info');

@@ -10,8 +10,14 @@
   <div class="container">
     <h1>Altered Fast Trading</h1>
 
-    <!-- Transfer Section -->
-    <div id="transferSection">
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="transfer">Transfer</button>
+      <button class="tab-btn" data-tab="results">Results <span class="tab-badge hidden" id="resultsBadge"></span></button>
+    </div>
+
+    <!-- Transfer Tab -->
+    <div id="transferTab" class="tab-content active">
       <div class="form-group">
         <label for="friendSelect">Select Friend</label>
         <select id="friendSelect">
@@ -42,7 +48,6 @@
         <button id="recapBtn" class="btn btn-secondary">View Recap</button>
         <button id="clearBtn" class="btn btn-danger">Clear List</button>
       </div>
-      <button id="downloadBtn" class="btn btn-secondary btn-full hidden">Download Report</button>
 
       <hr class="separator">
 
@@ -52,11 +57,56 @@
         </div>
         <div id="dictWarning" class="dict-warning hidden"></div>
         <div id="dictSetup" class="dict-setup hidden">
-          <p class="setup-message">⚠️ Dictionary required! Click below to build it first.</p>
+          <p class="setup-message">Dictionary required! Click below to build it first.</p>
         </div>
         <button id="refreshDictBtn" class="btn btn-secondary btn-full">Refresh Card Dictionary</button>
-        <p class="hint">Builds hash→reference mapping for C/R1/R2 cards (~20 sec)</p>
+        <p class="hint">Builds hash-reference mapping for C/R1/R2 cards (~20 sec)</p>
         <p class="hint">After building, refresh the altered.gg page to see buttons</p>
+      </div>
+    </div>
+
+    <!-- Results Tab -->
+    <div id="resultsTab" class="tab-content">
+      <div id="noResults" class="no-results">
+        <p>No transfer results yet.</p>
+        <p class="hint">Complete a transfer to see results here.</p>
+      </div>
+
+      <div id="historySection" class="history-section hidden">
+        <div class="history-header">
+          <label>Transfer History</label>
+          <button id="clearHistoryBtn" class="btn-small btn-danger">Clear</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+        <hr class="separator">
+      </div>
+
+      <div id="resultsContent" class="hidden">
+        <div class="results-summary">
+          <div class="result-stat success">
+            <span class="stat-number" id="successCount">0</span>
+            <span class="stat-label">Success</span>
+          </div>
+          <div class="result-stat failure">
+            <span class="stat-number" id="failureCount">0</span>
+            <span class="stat-label">Failed</span>
+          </div>
+        </div>
+
+        <div class="results-time" id="resultsTime"></div>
+
+        <div class="form-group">
+          <label>Transferred Cards</label>
+          <textarea id="resultCardList" rows="6" readonly></textarea>
+          <button id="copyListBtn" class="btn btn-secondary btn-full">Copy to Clipboard</button>
+        </div>
+
+        <div id="errorsSection" class="hidden">
+          <label>Errors</label>
+          <div id="errorsList" class="errors-list"></div>
+        </div>
+
+        <button id="downloadReportBtn" class="btn btn-secondary btn-full">Download Full Report</button>
       </div>
     </div>
 

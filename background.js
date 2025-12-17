@@ -303,6 +303,18 @@ async function runJob(userId, cards) {
 
     results.endTime = new Date().toISOString();
 
+    // Save results to history (in case popup is closed)
+    const stored = await chrome.storage.local.get(['transferHistory']);
+    let transferHistory = stored.transferHistory || [];
+    console.log('Before save - transferHistory length:', transferHistory.length);
+    transferHistory.unshift(results);
+    if (transferHistory.length > 20) transferHistory.pop(); // Keep last 20
+    await chrome.storage.local.set({
+      transferHistory,
+      resultsUnseen: true
+    });
+    console.log('Saved transferHistory - new length:', transferHistory.length);
+
     // Send recap with results
     const successCount = results.successes.length;
     const failCount = results.failures.length;
@@ -314,6 +326,12 @@ async function runJob(userId, cards) {
       success: allSuccess,
       results: results
     });
+
+    // Reload altered.gg tabs to reflect changes
+    const tabs = await chrome.tabs.query({ url: '*://*.altered.gg/*' });
+    for (const tab of tabs) {
+      chrome.tabs.reload(tab.id);
+    }
 
   } catch (err) {
     console.error('Job error:', err);
