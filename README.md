@@ -2,7 +2,8 @@
 
 A Chrome Extension for automating card transfers on [altered.gg](https://www.altered.gg). Add cards to a trading list directly from your collection page and send them to friends.
 
-![img.png](img.png)
+![img.png](img_popup.png)
+![img_button.png](img_button.png)
 
 ## Features
 
