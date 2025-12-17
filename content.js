@@ -207,7 +207,7 @@
     // Update the tracker count
     const tracker = container.querySelector('.aft-tracker');
     if (tracker) {
-      tracker.textContent = `[${added}]`;
+      tracker.textContent = `Give [${added}]`;
       tracker.classList.toggle('has-cards', added > 0);
     }
 
