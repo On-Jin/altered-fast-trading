@@ -34,6 +34,8 @@ Si les boutons sont gris alors que vous possédez des cartes, actualisez la page
 
 */!\ Attention /!* Lorsque vous appuyez sur un des boutons, cela ajoute ou retire des cartes de votre liste ! Aucun don n'est effectué !
 
+/!\ Les boutons /!\ n'apparaissent pas sous les uniques.
+
 ![img_4.png](imgs/img_4.png)
 
 Après avoir appuyé sur "2" pour la deuxième carte et "1" pour la troisième, voici ma liste :
