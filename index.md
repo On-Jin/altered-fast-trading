@@ -2,7 +2,7 @@
 
 ## Installation
 
-Chrome-like (Chrome, Brave, Edge...) ✅ : Vous pouvez l'installer ici
+Chrome-like (Chrome, Brave, Edge...) ✅ : Vous pouvez l'installer [ici](https://chromewebstore.google.com/detail/altered-fast-trading/pieoadkiiellgnjbhjcackanefcmjohm?authuser=0&hl=en)
 
 Firefox ❌
 
