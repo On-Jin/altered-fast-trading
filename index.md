@@ -68,6 +68,8 @@ Note : Ne fermez pas le navigateur. Ne fermez pas votre onglet Altered.
 
 Une fois terminé, vous pouvez retrouver votre récapitulatif dans "Results".
 
+/!\ /!\ /!\ Attention si vous voulez refaire un transfer, faire un "Clear List" car la "Card List" est toujours remplis /!\ /!\ /!\
+
 ![img_8.png](imgs/img_8.png)
 
 Tout en bas se trouvent deux boutons :
@@ -77,3 +79,5 @@ Tout en bas se trouvent deux boutons :
 - Le premier si jamais vous voulez copier la liste de votre transfert (toujours pratique).
 
 - Le second s'il y a eu des erreurs : vous pouvez télécharger un fichier texte qui les répertorie.
+
+
