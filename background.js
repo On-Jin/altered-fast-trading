@@ -383,86 +383,75 @@ async function buildHashDictionary(locale = null) {
   dictionaryBuildRunning = true;
   const hashToReference = {};
   let totalCards = 0;
-  let page = 1;
-  let hasMore = true;
+
+  // List of sets to fetch
+  const cardSets = ['CORE', 'COREKS', 'ALIZE', 'BISE', 'CYCLONE'];
 
   sendToPopup({ type: 'dictionaryStatus', status: 'info', message: `Starting dictionary build (${locale})...` });
 
   try {
-    while (hasMore) {
-      sendToPopup({
-        type: 'dictionaryStatus',
-        status: 'info',
-        message: `Fetching page ${page}... (${totalCards} cards so far)`
-      });
+    for (const cardSet of cardSets) {
+      let page = 1;
+      let hasMore = true;
 
-      // Fetch cards - only COMMON and RARE (C, R1, R2) from all sets
-      const url = `https://api.altered.gg/cards?page=${page}&rarity%5B%5D=RARE&rarity%5B%5D=COMMON&itemsPerPage=100&locale=${locale}`;
-      const response = await fetch(url, {
-        headers: {
-          'accept': 'application/json',
-          'Referer': 'https://www.altered.gg/'
+      while (hasMore) {
+        sendToPopup({
+          type: 'dictionaryStatus',
+          status: 'info',
+          message: `Fetching ${cardSet} page ${page}... (${totalCards} cards so far)`
+        });
+
+        const url = `https://api.altered.gg/cards?page=${page}&rarity%5B%5D=RARE&rarity%5B%5D=COMMON&itemsPerPage=100&locale=${locale}&cardSet%5B%5D=${cardSet}`;
+        const response = await fetch(url, {
+          headers: {
+            'accept': 'application/json',
+            'Referer': 'https://www.altered.gg/'
+          }
+        });
+
+        if (!response.ok) {
+          console.log(`AFT DICT: API error for ${cardSet}: ${response.status}`);
+          break;
         }
-      });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
+        const data = await response.json();
+        const cards = data['hydra:member'] || data.member || data;
 
-      const data = await response.json();
-      const cards = data['hydra:member'] || data.member || data;
+        if (!Array.isArray(cards) || cards.length === 0) {
+          console.log(`AFT DICT: ${cardSet} - no more cards at page ${page}`);
+          hasMore = false;
+          break;
+        }
 
-      // Debug: log first card structure on page 1
-      if (page === 1 && cards.length > 0) {
-        console.log('AFT DICT: First card from API:', JSON.stringify(cards[0], null, 2));
-      }
-
-      if (!Array.isArray(cards)) {
-        console.log('AFT DICT: Stopping - response is not an array:', typeof cards);
-        hasMore = false;
-        break;
-      }
-      if (cards.length === 0) {
-        console.log('AFT DICT: Stopping - empty array returned');
-        hasMore = false;
-        break;
-      }
-
-      // Extract hash → reference mapping
-      let matched = 0, noHash = 0;
-      for (const card of cards) {
-        if (card.reference && card.imagePath) {
-          // Only C, R1, R2
-          if (card.reference.match(/_[CR][12]?$/)) {
-            const hashMatch = card.imagePath.match(/([a-f0-9]{32})\.(jpg|webp|png)/i);
-            if (hashMatch) {
-              hashToReference[hashMatch[1]] = card.reference;
-              totalCards++;
-              matched++;
-            } else {
-              noHash++;
-              if (noHash === 1) {
-                console.log('AFT DICT: No hash in imagePath:', card.imagePath);
+        // Extract hash → reference mapping
+        let matched = 0;
+        for (const card of cards) {
+          if (card.reference && card.imagePath) {
+            if (card.reference.match(/_[CR][12]?$/)) {
+              const hashMatch = card.imagePath.match(/([a-f0-9]{32})\.(jpg|webp|png)/i);
+              if (hashMatch) {
+                hashToReference[hashMatch[1].toLowerCase()] = card.reference;
+                totalCards++;
+                matched++;
               }
             }
           }
         }
-      }
-      const totalItems = data['hydra:totalItems'] || data.totalItems;
-      console.log(`AFT DICT: Page ${page} - matched ${matched}, no hash ${noHash}, totalItems: ${totalItems}`);
+        console.log(`AFT DICT: ${cardSet} page ${page} - matched ${matched} cards`);
 
-      // Check if there are more pages - keep going until empty page
-      console.log(`AFT DICT: Page ${page} returned ${cards.length} cards`);
-      if (cards.length < 100) {
-        hasMore = false;
-        console.log('AFT DICT: Stopping - got fewer than 100 cards');
-      } else if (page >= 100) {
-        hasMore = false;
-        console.log('AFT DICT: Stopping - reached page 100 limit');
-      } else {
-        page++;
-        await delay(1000);
+        if (cards.length < 100) {
+          hasMore = false;
+        } else if (page >= 50) {
+          hasMore = false;
+          console.log(`AFT DICT: ${cardSet} - reached page limit`);
+        } else {
+          page++;
+          await delay(500);
+        }
       }
+
+      // Small delay between sets
+      await delay(300);
     }
 
     // Save to storage

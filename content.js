@@ -469,12 +469,15 @@
       // Extract image hash
       const hashMatch = combined.match(/([a-f0-9]{32})\.(jpg|webp|png)/i);
       if (hashMatch) {
-        const hash = hashMatch[1];
+        const hash = hashMatch[1].toLowerCase();
+        console.log('AFT DEBUG: Found hash:', hash, 'in dict:', !!hashDictionary[hash]);
 
         // Look up in dictionary
         if (hashDictionary[hash]) {
           return hashDictionary[hash];
         }
+      } else {
+        console.log('AFT DEBUG: No hash found in:', combined.substring(0, 200));
       }
 
       // No dictionary match - card is likely promo or not loaded yet
@@ -700,7 +703,11 @@
       const stored = await chrome.storage.local.get(['hashDictionary', 'hashDictionaryLocale']);
       if (stored.hashDictionary) {
         hashDictionary = stored.hashDictionary;
-        console.log('Altered Fast Trading: Dictionary loaded with', Object.keys(hashDictionary).length, 'entries');
+        const keys = Object.keys(hashDictionary);
+        console.log('Altered Fast Trading: Dictionary loaded with', keys.length, 'entries');
+        if (keys.length > 0) {
+          console.log('AFT DEBUG: First 3 dict keys:', keys.slice(0, 3));
+        }
 
         // Check locale mismatch
         const pageLocale = detectPageLocale();

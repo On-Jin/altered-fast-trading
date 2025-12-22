@@ -512,4 +512,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     showStatus('Building dictionary...', 'info');
     chrome.runtime.sendMessage({ type: 'buildDictionary' });
   });
+
+  // Reset button
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async () => {
+      if (confirm('Reset all extension data? This will clear the dictionary, card list, and transfer history.')) {
+        await chrome.storage.local.clear();
+        showStatus('Extension reset. Reload the page.', 'info');
+        // Reset UI
+        cardListInput.value = '';
+        friendSelect.innerHTML = '<option value="">-- Select a friend --</option>';
+        dictInfo.textContent = 'Dictionary: Not loaded';
+        transferHistory = [];
+        lastResults = null;
+        displayResults(null);
+        renderHistoryList();
+      }
+    });
+  }
 });
