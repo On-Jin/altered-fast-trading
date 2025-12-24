@@ -760,6 +760,12 @@
     }
   }
 
-  initialize();
-  console.log('Altered Fast Trading: Content script loaded');
+  // Only run on /[lang]/cards pages
+  const cardsPagePattern = /^\/[a-z]{2}-[a-z]{2}\/cards/;
+  if (cardsPagePattern.test(window.location.pathname)) {
+    initialize();
+    console.log('Altered Fast Trading: Content script loaded on cards page');
+  } else {
+    console.log('Altered Fast Trading: Not a cards page, skipping');
+  }
 })();

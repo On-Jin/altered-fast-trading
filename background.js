@@ -311,7 +311,8 @@ async function runJob(userId, cards) {
     if (transferHistory.length > 20) transferHistory.pop(); // Keep last 20
     await chrome.storage.local.set({
       transferHistory,
-      resultsUnseen: true
+      resultsUnseen: true,
+      cardList: '' // Clear the list after transfer
     });
     console.log('Saved transferHistory - new length:', transferHistory.length);
 
